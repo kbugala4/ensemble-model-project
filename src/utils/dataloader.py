@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
-from typing import Tuple, Dict, List
+from typing import Optional, Tuple, Dict, List
 import os
+
+from utils.generate_data_subset import DataSubsetGenerator
 
 
 class DatasetLoader:
@@ -31,7 +33,15 @@ class DatasetLoader:
             }
         }
     
-    def load_dataset(self, dataset_name: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[str]]:
+    def load_bootstrapped_dataset(self, dataset_conf: Dict, seed: Optional[int] = None) -> Tuple[pd.DataFrame, List[str]]:
+        """
+        Load a pre-processed dataset with a subset of the data.
+        """
+        generator = DataSubsetGenerator()
+        return generator.load_bootstrapped_dataset(dataset_conf, seed)
+        
+    
+    def load_dataset(self, dataset_name: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, List[str]]:
         """
         Load a pre-processed dataset.
         
@@ -76,10 +86,10 @@ class DatasetLoader:
         feature_columns = [col for col in train_df.columns if col != target_col]
         
         # Extract arrays
-        X_train = train_df[feature_columns].values
-        y_train = train_df[target_col].values
-        X_test = test_df[feature_columns].values
-        y_test = test_df[target_col].values
+        X_train = train_df[feature_columns]
+        y_train = train_df[target_col]
+        X_test = test_df[feature_columns]
+        y_test = test_df[target_col]
         
         print(f"Dataset {dataset_name} loaded successfully:")
         print(f"  Train: {X_train.shape}, Test: {X_test.shape}")

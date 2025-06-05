@@ -5,7 +5,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils.generate_hyperparams import HyperparamsGenerator
-from utils.generate_data_subset import DataSubsetGenerator
+from utils.dataloader import DatasetLoader
 from utils import FLIGHTS_DATASET_TARGET_CLASS_NAME
 
 if __name__ == '__main__':
@@ -21,8 +21,8 @@ if __name__ == '__main__':
     
     try:
         # Create an instance of the class
-        generator = DataSubsetGenerator()
-        df_bootstrap, selected_features = generator.load_bootstrapped_dataset(
+        dataset_loader = DatasetLoader()
+        df_bootstrap, selected_features = dataset_loader.load_bootstrapped_dataset(
             example_conf, seed=42
         )
         print(f"\nBootstrap successful with {example_conf.get('select_type')}!")
