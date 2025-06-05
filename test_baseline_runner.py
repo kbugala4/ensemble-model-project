@@ -16,7 +16,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 try:
-    from src.pipelines.runner import BaselineExperimentRunner
+    from pipelines.baseline_runner import BaselineExperimentRunner
     from src.utils.dataloader import DatasetLoader
     from src.models.sklearn_wrappers import create_bagging_classifier, create_random_forest_classifier
     print("✅ All imports successful")
