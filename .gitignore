@@ -6,6 +6,7 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+**/__pycache__
 # More specific for .DS_Store in all directories
 **/.DS_Store
+*.egg-info
