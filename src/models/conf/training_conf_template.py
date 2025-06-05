@@ -5,12 +5,12 @@ conf = {
     'n_models': 10,
     
     'dataset_conf': {
-        'dataset_name': "xxx.csv",
+        'dataset_name': "xxx",
         'shrunk_size': None,
         'n_attributes_max': 10,
         'n_attributes_min': 10,
-        # whatever conf value we need
-        # '...': '...'
+        'select_type': 'standard-selection', # or 'sqrt-selection'
+        'target_column': 'target'
     },
     
     'model_conf': {
