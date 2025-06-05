@@ -14,7 +14,7 @@ import os
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
-from src.pipelines.runner import BaselineExperimentRunner
+from pipelines.baseline_runner import BaselineExperimentRunner
 
 
 def quick_test():
