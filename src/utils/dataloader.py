@@ -5,7 +5,6 @@ import os
 
 from utils.generate_data_subset import DataSubsetGenerator
 
-
 class DatasetLoader:
     """
     Dataset loader for project datasets.
