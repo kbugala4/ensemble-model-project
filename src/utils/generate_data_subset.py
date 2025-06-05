@@ -209,8 +209,11 @@ class DataSubsetGenerator:
         """
         try:
             # READ ONLY TRAIN DATASET FOR BOOTSTRAPPING
-            dataset_path_name = COMMON_DATASET_CONFIGS[dataset_name]['path']
-            path = f"data/processed/{dataset_path_name}/train.csv"
+            # print(dataset_name)
+            # dataset_path_name = COMMON_DATASET_CONFIGS[dataset_name]['path']
+            # path = f"data/processed/{dataset_path_name}/train.csv"
+            path = f"../{dataset_name}"
+
             print(f"Loading dataset from: {path}")
             df = pd.read_csv(path)
             print(f"Original dataset shape: {df.shape}")
