@@ -17,7 +17,8 @@ class DecisionTreeModel(BaseModel):
         Args:
             params (dict): Dictionary of hyperparameters for DecisionTreeClassifier.
         """
-        super().__init__(name="DecisionTree", params=params)
+        # super().__init__(name="DecisionTree", params=params)
+        self.params = params
         self.model = DecisionTreeClassifier(**(params or {}))
 
     def fit(self, X: np.ndarray, y: np.ndarray, training_params: dict = None) -> None:

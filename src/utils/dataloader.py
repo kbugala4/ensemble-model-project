@@ -5,7 +5,6 @@ import os
 
 from utils.generate_data_subset import DataSubsetGenerator
 
-
 class DatasetLoader:
     """
     Dataset loader for project datasets.
@@ -13,7 +12,7 @@ class DatasetLoader:
     (preprocessing is done in Jupyter notebooks).
     """
     
-    def __init__(self, data_root: str = "data/processed"):
+    def __init__(self, data_root: str = "../data/processed"):
         self.data_root = data_root
         self.dataset_configs = {
             'flights': {
@@ -60,7 +59,7 @@ class DatasetLoader:
         # Load train and test files
         train_path = os.path.join(dataset_path, 'train.csv')
         test_path = os.path.join(dataset_path, 'test.csv')
-        
+       
         if not os.path.exists(train_path):
             raise FileNotFoundError(f"Train file not found: {train_path}")
         if not os.path.exists(test_path):
