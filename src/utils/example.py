@@ -1,28 +1,38 @@
+import sys
+import os
+
+# Add src directory to Python path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from utils.generate_hyperparams import HyperparamsGenerator
 from utils.generate_data_subset import DataSubsetGenerator
-
+from utils import FLIGHTS_DATASET_TARGET_CLASS_NAME
 
 if __name__ == '__main__':
-    # Example configuration matching your template
-    example_dataset_conf = {
-        'dataset_name': 'data/processed/binary_balanced_airflight_satisfaction/train.csv',
+     # Example configuration matching your template
+    example_conf = {
+        'dataset_name': 'flights',
         'shrunk_size': 1000,
         'n_attributes_max': 10,
-        'n_attributes_min': 5
+        'n_attributes_min': 5,
+        'select_type': 'standard-selection', # or 'sqrt-selection'
+        'target_column': FLIGHTS_DATASET_TARGET_CLASS_NAME
     }
     
     try:
         # Create an instance of the class
         generator = DataSubsetGenerator()
-        df_bootstrap, selected_features = generator.load_bootstrapped_dataset(example_dataset_conf, seed=42)
-        print(f'\nBootstrap successful!')
-        print(f'Selected features: {selected_features}')
-        print(f'Final dataset shape: {df_bootstrap.shape}')
-        print(f'Dataset columns: {list(df_bootstrap.columns)}')
-        print(df_bootstrap.head())
-        
+        df_bootstrap, selected_features = generator.load_bootstrapped_dataset(
+            example_conf, seed=42
+        )
+        print(f"\nBootstrap successful with {example_conf.get('select_type')}!")
+        print(f"Selected features: {selected_features}")
+        print(f"Final dataset shape: {df_bootstrap.shape}")
+        print(f"Dataset columns: {list(df_bootstrap.columns)}")
+            
     except Exception as e:
-        print(f'Error: {e}')
+            print(f"Error: {e}")
+
 
     model_conf = {
         'model_name': 'DecisionTree',

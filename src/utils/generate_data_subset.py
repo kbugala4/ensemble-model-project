@@ -5,9 +5,7 @@ from typing import Dict, Optional, Tuple, List
 import random
 import warnings
 
-FLIGHTS_DATASET_TARGET_CLASS_NAME = "satisfaction"
-CREDIT_CARDS_DATASET_TARGET_CLASS_NAME = "class"
-HUMAN_ACTIVITY_DATASET_TARGET_CLASS_NAME = "Activity"
+from utils.common import COMMON_DATASET_CONFIGS
 
 class DataSubsetGenerator:
     """
@@ -29,7 +27,11 @@ class DataSubsetGenerator:
                 - 'n_attributes_max' (int): Maximum number of attributes to select
                 - 'n_attributes_min' (int): Minimum number of attributes to select
             seed (int, optional): Random seed for reproducibility
-            
+            select_type (str): Type of attribute selection strategy:
+                - "standard-selection": Random selection within min/max range
+                - "sqrt-selection": Select sqrt(n_features) attributes
+                - "correlation-selection": Select attributes based on correlation analysis
+                
         Returns:
             Tuple[pd.DataFrame, List[str]]: 
                 - Bootstrapped dataset with selected attributes
@@ -50,6 +52,8 @@ class DataSubsetGenerator:
         shrunk_size = dataset_conf.get('shrunk_size')
         n_attributes_max = dataset_conf.get('n_attributes_max')
         n_attributes_min = dataset_conf.get('n_attributes_min')
+        select_type = dataset_conf.get('select_type', "standard-selection")
+        target_column = dataset_conf.get('target_column')
         
         #validate the dataset configuration object fields
         self._validate_dataset_conf(dataset_conf)
@@ -67,23 +71,6 @@ class DataSubsetGenerator:
             df = df.sample(n=shrunk_size, random_state=seed).reset_index(drop=True)
             print(f"Dataset shrunk to: {df.shape}")
         
-        # Get all available attributes (excluding potential target column)
-        # Look for common target names
-        potential_targets = [FLIGHTS_DATASET_TARGET_CLASS_NAME, 
-                             CREDIT_CARDS_DATASET_TARGET_CLASS_NAME, 
-                             HUMAN_ACTIVITY_DATASET_TARGET_CLASS_NAME]
-        target_column = None
-        
-        # Find target column
-        for col in potential_targets:
-            if col in df.columns:
-                target_column = col
-                break
-        
-        # If no standard target found, assume last column is target
-        if target_column is None and len(df.columns) > 1:
-            target_column = df.columns[-1]
-            print(f"Assuming '{target_column}' as target column")
         
         # Get feature columns (all except target)
         if target_column and target_column in df.columns:
@@ -94,22 +81,12 @@ class DataSubsetGenerator:
         
         print(f"Available feature columns: {len(feature_columns)}")
         
-        # Validate that we have enough attributes
-        max_available = len(feature_columns)
-        if n_attributes_min > max_available:
-            raise ValueError(f"Requested minimum attributes ({n_attributes_min}) exceeds available features ({max_available})")
+        # Select attributes using the specified selection strategy
+        selected_attributes = self._select_attributes(
+            df, feature_columns, n_attributes_min, n_attributes_max, select_type, target_column
+        )
         
-        # Adjust n_attributes_max if it exceeds available features
-        n_attributes_max = min(n_attributes_max, max_available)
-        
-        # Randomly select number of attributes to use
-        n_attributes_to_select = random.randint(n_attributes_min, n_attributes_max)
-        print(f"Selected {n_attributes_to_select} attributes")
-        
-        # Randomly select the attributes
-        selected_attributes = random.sample(feature_columns, n_attributes_to_select)
-        
-        print(f"Selected {n_attributes_to_select} attributes: {selected_attributes}")
+        print(f"Selected {len(selected_attributes)} attributes: {selected_attributes}")
         
         # Create the subset DataFrame
         subset_columns = selected_attributes.copy()
@@ -130,6 +107,7 @@ class DataSubsetGenerator:
             dataset_conf (Dict): Dataset configuration
             n_samples (int): Number of bootstrap samples to create
             base_seed (int): Base seed for generating different seeds
+            select_type (str): Type of attribute selection strategy
             
         Returns:
             List[Tuple[pd.DataFrame, List[str]]]: List of tuples (df_subset, selected_attributes) for each sample
@@ -144,6 +122,66 @@ class DataSubsetGenerator:
         
         return bootstrap_samples
 
+    def _select_attributes(self, df: pd.DataFrame, feature_columns: List[str], 
+                          n_attributes_min: int, n_attributes_max: int, 
+                          select_type: str, target_column: Optional[str] = None) -> List[str]:
+        """
+        Select attributes based on the specified selection strategy.
+        
+        Args:
+            df (pd.DataFrame): The dataset
+            feature_columns (List[str]): Available feature columns
+            n_attributes_min (int): Minimum number of attributes to select
+            n_attributes_max (int): Maximum number of attributes to select
+            select_type (str): Selection strategy type
+            target_column (str, optional): Target column name for correlation analysis
+            
+        Returns:
+            List[str]: Selected attribute names
+        """
+        max_available = len(feature_columns)
+        
+        if select_type == "standard-selection":
+            return self._standard_selection(feature_columns, n_attributes_min, n_attributes_max, max_available)
+        
+        elif select_type == "sqrt-selection":
+            return self._sqrt_selection(feature_columns, max_available)
+        else:
+            raise ValueError(f"Unknown select_type: {select_type}")
+
+    def _standard_selection(self, feature_columns: List[str], n_attributes_min: int, 
+                           n_attributes_max: int, max_available: int) -> List[str]:
+        """
+        Standard random selection within min/max range.
+        """
+        # Validate that we have enough attributes
+        if n_attributes_min > max_available:
+            raise ValueError(f"Requested minimum attributes ({n_attributes_min}) exceeds available features ({max_available})")
+        
+        # Adjust n_attributes_max if it exceeds available features
+        n_attributes_max = min(n_attributes_max, max_available)
+        
+        # Randomly select number of attributes to use
+        n_attributes_to_select = random.randint(n_attributes_min, n_attributes_max)
+        print(f"Standard selection: Selected {n_attributes_to_select} attributes")
+        
+        # Randomly select the attributes
+        selected_attributes = random.sample(feature_columns, n_attributes_to_select)
+        return selected_attributes
+
+    def _sqrt_selection(self, feature_columns: List[str], max_available: int) -> List[str]:
+        """
+        Square root selection - select sqrt(n_features) attributes (Random Forest approach).
+        """
+        n_attributes_to_select = max(1, int(np.sqrt(max_available)))
+        n_attributes_to_select = min(n_attributes_to_select, max_available)
+        
+        print(f"Sqrt selection: Selected {n_attributes_to_select} attributes (sqrt of {max_available})")
+        
+        # Randomly select the attributes
+        selected_attributes = random.sample(feature_columns, n_attributes_to_select)
+        return selected_attributes
+
     def _validate_dataset_conf(self, dataset_conf: Dict) -> None:
         """
         Validate the dataset configuration.
@@ -151,6 +189,7 @@ class DataSubsetGenerator:
         dataset_name = dataset_conf.get('dataset_name')
         n_attributes_max = dataset_conf.get('n_attributes_max')
         n_attributes_min = dataset_conf.get('n_attributes_min')
+        target_column = dataset_conf.get('target_column')
         
         # Validate required parameters
         if not dataset_name:
@@ -161,14 +200,19 @@ class DataSubsetGenerator:
             raise ValueError("'n_attributes_min' cannot be greater than 'n_attributes_max'")
         if n_attributes_min < 1:
             raise ValueError("'n_attributes_min' must be at least 1")
-    
+        if target_column is None:
+            raise ValueError("'target_column' must be specified in dataset_conf")
+
     def _load_dataset(self, dataset_name: str) -> pd.DataFrame:
         """
         Load a dataset from a CSV file.
         """
         try:
-            print(f"Loading dataset from: {dataset_name}")
-            df = pd.read_csv(dataset_name)
+            # READ ONLY TRAIN DATASET FOR BOOTSTRAPPING
+            dataset_path_name = COMMON_DATASET_CONFIGS[dataset_name]['path']
+            path = f"data/processed/{dataset_path_name}/train.csv"
+            print(f"Loading dataset from: {path}")
+            df = pd.read_csv(path)
             print(f"Original dataset shape: {df.shape}")
             return df
             
