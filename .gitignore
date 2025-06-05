@@ -10,3 +10,4 @@ Thumbs.db
 # More specific for .DS_Store in all directories
 **/.DS_Store
 *.egg-info
+*.pyc
