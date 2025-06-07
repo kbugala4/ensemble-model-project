@@ -1,5 +1,14 @@
 from typing import Callable, List, Dict, Any
 import numpy as np
+from scipy.stats import mode
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    classification_report
+)
 import pandas as pd
 import os
 import random
@@ -7,6 +16,8 @@ from models.base_model import BaseModel
 from sklearn.model_selection import train_test_split
 from utils.dataloader import DatasetLoader
 import sys
+from collections import defaultdict
+from utils.metrics_saver import MetricsSaver
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
@@ -25,7 +36,8 @@ class EnsembleRunner:
         self,
         hyperparam_generator: Callable[[dict], dict],
         data_loader: Callable[[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]],
-        data_sampler: Callable
+        data_sampler: Callable,
+        metrics_saver: Callable,
     ):
         """
         Initializes the Runner.
@@ -38,59 +50,89 @@ class EnsembleRunner:
         self.data_loader = data_loader
         self.data_sampler = data_sampler
         self.models: List[BaseModel] = []
+        self.metrics_saver = metrics_saver
 
-    def build_ensemble(self, conf: dict, seed : int = 42) -> None:
+    def run_dataset_experiment(self, conf: dict, seed: int = 42) -> Dict:
+        # for dataset_name in self.data_loader.list_available_datasets()[0]:
+        dataset_name = self.data_loader.list_available_datasets()[0]
+        train_logs, test_logs = self.build_ensemble(conf, dataset_name, seed)
+
+        averages_train_logs = EnsembleRunner.average_model_metrics(train_logs)
+        full_report = test_logs
+ 
+        # Add training info
+        for k, v in train_logs.items():
+            full_report[f'{k}_train'] = v
+        
+        # # Add dataset info
+        # full_report['n_samples_test'] = len(X_train)
+        # full_report['n_classes'] = len(np.unique(y_train)),
+
+        # Add results to metrics saver
+        self.metrics_saver.add_experiment_results(
+            dataset_name,
+            conf['model_name'],
+            full_report
+            )
+        
+        # Print summary and save results
+        self.metrics_saver.print_summary()
+        json_path, csv_path = self.metrics_saver.save_results()
+        
+        print(f"\n✅ Full custom experiments completed!")
+        print(f"📄 Detailed results: {json_path}")
+        print(f"📊 Summary: {csv_path}")
+        
+        return self.metrics_saver.get_results()
+
+    def build_ensemble(self, conf: dict, dataset_name: str, seed : int = 42) -> Dict:
         """
         Builds the ensemble by creating model instances with sampled data and hyperparameters.
         """
 
         self.models.clear()
-        logs = {
-            'train': {},
-            'test': {}
-        }
-
-
-        ds_name = self.data_loader.list_available_datasets()[0]
-        
-        print(f'Using dataset: {ds_name}')
-
-        X_train, X_test, y_train, y_test, feature_columns = self.data_loader.load_dataset(ds_name)
+        logs = {}
+      
+        _, X_test, _, y_test, _   = self.data_loader.load_dataset(dataset_name)
         
         if seed is not None:
             random.seed(seed)
             np.random.seed(seed)
         
         for i in range(conf['n_models']):
-            
+            model_logs = {}
+
             dataset_conf = conf['dataset_conf']
             sample, features = self.data_sampler.load_bootstrapped_dataset(dataset_conf=dataset_conf, seed=None)
             target_column = sample.columns[-1]
+            model_logs['selected_features'] = features
 
             X_sample = sample.drop(columns=[target_column])
             y_sample = sample[target_column]
-            # X_train, X_test, y_train, y_test = train_test_split(
-            # X, y, test_size=0.1, random_state=seed
-            # )
             
             model_conf = conf['model_conf']
 
             hyperparams = self.hyperparam_generator.generate_hyperparams(model_conf, seed=None)
             model = model_conf['model_type'](hyperparams)
-            # print(hyperparams)
+            model.training_features = features
+            model_logs['hyperparams'] = hyperparams
+
 
             log_train = model.fit(X_sample, y_sample)
-            print(f"Training finished!")
-            # print(log_train)
+
             log_train = model.evaluate(X_sample, y_sample)
-            print(log_train)
+            log_test = model.evaluate(X_test[features], y_test)
 
-            logs['train'][f"{model_conf['model_name']}_{i}"] = log_train
-            # logs['test'][f"{model_conf['model_name']}_{i}"] = log_test
+            model_logs['train'] = log_train
+            model_logs['test'] = log_test
+            model_key = f"{conf['model_name']}_{i}"
+            logs[model_key] = model_logs
+
             self.models.append(model)
-        print(logs)
-        return logs
-
+        
+        test_metrics = self.evaluate(X_test, y_test)
+        return logs, test_metrics
+    
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predicts using the ensemble (majority voting or averaging).
@@ -105,20 +147,81 @@ class EnsembleRunner:
         # Majority voting (for classification)
         return np.apply_along_axis(lambda x: np.bincount(x).argmax(), axis=0, arr=predictions)
 
-    def evaluate(self, X: np.ndarray, y: np.ndarray, metric_fn: Callable[[np.ndarray, np.ndarray], float]) -> float:
+    # def evaluate_model(self, X: np.ndarray, y: np.ndarray, ):
+    #     """
+    #     Evaluates the ensemble using a provided metric function.
+
+    #     Args:
+    #         X (np.ndarray): Evaluation features.
+    #         y (np.ndarray): Ground truth labels.
+
+    #     Returns:
+    #         dict: Dictionary with evaluation metrics.
+    #     """
+    #     y_pred = self.predict(X)
+    #     results = {
+    #         'accuracy': float(accuracy_score(y, y_pred)),
+    #         'precision_macro': float(precision_score(y, y_pred, average='macro', zero_division=0)),
+    #         'precision_weighted': float(precision_score(y, y_pred, average='weighted', zero_division=0)),
+    #         'recall_macro': float(recall_score(y, y_pred, average='macro', zero_division=0)),
+    #         'recall_weighted': float(recall_score(y, y_pred, average='weighted', zero_division=0)),
+    #         'f1_macro': float(f1_score(y, y_pred, average='macro', zero_division=0)),
+    #         'f1_weighted': float(f1_score(y, y_pred, average='weighted', zero_division=0)),
+    #         'confusion_matrix': confusion_matrix(y, y_pred).tolist(),
+    #         'classification_report': classification_report(y, y_pred, output_dict=True),
+    #     }
+    #     return results
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> float:
         """
-        Evaluates the ensemble using a provided metric function.
+        Evaluates an ensemble of models using majority voting and returns various metrics.
 
         Args:
-            X (np.ndarray): Evaluation features.
-            y (np.ndarray): Ground truth labels.
-            metric_fn (Callable): Metric function accepting y_true and y_pred.
+            models (list): List of trained models implementing a .predict() method.
+            X_test (np.ndarray or pd.DataFrame): Test features.
+            y_test (np.ndarray or pd.Series): True labels.
 
         Returns:
-            float: Evaluation score.
+            dict: Dictionary with evaluation metrics.
         """
-        y_pred = self.predict(X)
-        return metric_fn(y, y_pred)
+        if len(self.models) == 0:
+            raise "No model to evaluate"
+
+        # Get predictions from all models
+        predictions = np.array([model.predict(X[model.training_features]) for model in self.models])  # shape: (n_models, n_samples)
+
+        # Majority voting
+        majority_preds, _ = mode(predictions, axis=0, keepdims=False)  # shape: (n_samples,)
+
+        # Calculate metrics
+        y_pred = majority_preds
+
+        results = {
+            'accuracy': float(accuracy_score(y, y_pred)),
+            'precision_macro': float(precision_score(y, y_pred, average='macro', zero_division=0)),
+            'precision_weighted': float(precision_score(y, y_pred, average='weighted', zero_division=0)),
+            'recall_macro': float(recall_score(y, y_pred, average='macro', zero_division=0)),
+            'recall_weighted': float(recall_score(y, y_pred, average='weighted', zero_division=0)),
+            'f1_macro': float(f1_score(y, y_pred, average='macro', zero_division=0)),
+            'f1_weighted': float(f1_score(y, y_pred, average='weighted', zero_division=0)),
+            'confusion_matrix': confusion_matrix(y, y_pred).tolist(),
+            'classification_report': classification_report(y, y_pred, output_dict=True),
+        }
+
+        return results
+        # """
+        # Evaluates the ensemble using a provided metric function.
+
+        # Args:
+        #     X (np.ndarray): Evaluation features.
+        #     y (np.ndarray): Ground truth labels.
+        #     metric_fn (Callable): Metric function accepting y_true and y_pred.
+
+        # Returns:
+        #     float: Evaluation score.
+        # """
+        # y_pred = self.predict(X)
+        # return metric_fn(y, y_pred)
 
     def get_models(self) -> List[BaseModel]:
         """
@@ -126,3 +229,43 @@ class EnsembleRunner:
             List[BaseModel]: List of trained models.
         """
         return self.models
+
+    @staticmethod
+    def average_model_metrics(models_metrics: dict) -> dict:
+        """
+        Averages scalar performance metrics across all models in the ensemble.
+
+        Args:
+            models_metrics (dict): Dictionary of per-model metrics (like the one you provided).
+
+        Returns:
+            dict: Dictionary with averaged metrics under 'train' and 'test' keys.
+        """
+        train_sums = defaultdict(float)
+        test_sums = defaultdict(float)
+        n_models = len(models_metrics)
+
+        scalar_metrics = [
+            'accuracy',
+            'precision_macro',
+            'precision_weighted',
+            'recall_macro',
+            'recall_weighted',
+            'f1_macro',
+            'f1_weighted'
+        ]
+
+        for model_key, model_data in models_metrics.items():
+            train = model_data.get('train', {})
+            test = model_data.get('test', {})
+            
+            for metric in scalar_metrics:
+                train_sums[metric] += train.get(metric, 0.0)
+                test_sums[metric] += test.get(metric, 0.0)
+
+        averaged = {
+            'train': {metric: train_sums[metric] / n_models for metric in scalar_metrics},
+            'test': {metric: test_sums[metric] / n_models for metric in scalar_metrics}
+        }
+
+        return averaged
