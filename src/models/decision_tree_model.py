@@ -1,8 +1,15 @@
 import joblib
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score
 from models.base_model import BaseModel
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    classification_report
+)
 
 
 class DecisionTreeModel(BaseModel):
@@ -20,15 +27,15 @@ class DecisionTreeModel(BaseModel):
         # super().__init__(name="DecisionTree", params=params)
         self.params = params
         self.model = DecisionTreeClassifier(**(params or {}))
+        self.training_features = []
 
-    def fit(self, X: np.ndarray, y: np.ndarray, training_params: dict = None) -> None:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """
         Trains the DecisionTreeClassifier on the provided dataset.
 
         Args:
             X (np.ndarray): Training features.
             y (np.ndarray): Training labels.
-            training_params (dict, optional): Not used for sklearn tree.
         """
         self.model.fit(X, y)
 
@@ -46,19 +53,29 @@ class DecisionTreeModel(BaseModel):
 
     def evaluate(self, X: np.ndarray, y: np.ndarray, metric: callable = None) -> float:
         """
-        Evaluates the model using the specified metric function.
+        Evaluates the model.
 
         Args:
             X (np.ndarray): Evaluation features.
-            y (np.ndarray): True labels.
-            metric (callable, optional): Evaluation function. Defaults to accuracy.
+            y (np.ndarray): Ground truth labels.
 
         Returns:
-            float: Evaluation score.
+            dict: Dictionary with evaluation metrics.
         """
         y_pred = self.predict(X)
-        metric_fn = metric if metric else accuracy_score
-        return metric_fn(y, y_pred)
+        results = {
+            'accuracy': float(accuracy_score(y, y_pred)),
+            'precision_macro': float(precision_score(y, y_pred, average='macro', zero_division=0)),
+            'precision_weighted': float(precision_score(y, y_pred, average='weighted', zero_division=0)),
+            'recall_macro': float(recall_score(y, y_pred, average='macro', zero_division=0)),
+            'recall_weighted': float(recall_score(y, y_pred, average='weighted', zero_division=0)),
+            'f1_macro': float(f1_score(y, y_pred, average='macro', zero_division=0)),
+            'f1_weighted': float(f1_score(y, y_pred, average='weighted', zero_division=0)),
+            'confusion_matrix': confusion_matrix(y, y_pred).tolist(),
+            'classification_report': classification_report(y, y_pred, output_dict=True),
+        }
+        return results
+
 
     def save(self, path: str) -> None:
         """
