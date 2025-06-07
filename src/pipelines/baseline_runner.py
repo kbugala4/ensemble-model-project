@@ -14,7 +14,7 @@ from utils.metrics_saver import MetricsSaver
 from models.sklearn_wrappers import create_bagging_classifier, create_random_forest_classifier
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, classification_report
+    confusion_matrix, classification_report, roc_auc_score, log_loss
 )
 
 class BaselineExperimentRunner:
@@ -98,8 +98,11 @@ class BaselineExperimentRunner:
                         )
                         
                         # Print quick results
-                        print(f"    ✅ Accuracy: {model_results.get('accuracy', 0):.4f}, "
-                              f"F1: {model_results.get('f1_weighted', 0):.4f}")
+                        print(f"    ✅ Accuracy (Test): {model_results.get('accuracy', 0):.4f}, "
+                              f"F1 (Test): {model_results.get('f1_weighted', 0):.4f}")
+                        print(f"    ✅ Accuracy (Train): {model_results.get('accuracy_train', 0):.4f}, "
+                              f"F1 (Train): {model_results.get('f1_weighted_train', 0):.4f}")
+                        
                     
                     except Exception as e:
                         print(f"    ❌ Error training {model_name}: {str(e)}")
@@ -141,10 +144,9 @@ class BaselineExperimentRunner:
         y_pred = model.predict(X_test)
         y_pred_train = model.predict(X_train)
         
-        try:
-            y_pred_proba = model.predict_proba(X_test)
-        except:
-            y_pred_proba = None  # Some models might not support predict_proba
+        # Get probability predictions (both RandomForest and Bagging support this)
+        y_pred_proba = model.predict_proba(X_test)
+        y_pred_proba_train = model.predict_proba(X_train)
         
         # Calculate test metrics (using simplified names for MetricsSaver compatibility)
         results = {
@@ -177,6 +179,28 @@ class BaselineExperimentRunner:
             'n_classes': len(np.unique(y_train)),
             'model_params': model.get_params()
         }
+        
+        # Add AUC and log_loss metrics
+        try:
+            n_classes = len(np.unique(y_train))
+            
+            # For binary classification
+            if n_classes == 2:
+                results['roc_auc'] = float(roc_auc_score(y_test, y_pred_proba[:, 1]))
+                results['roc_auc_train'] = float(roc_auc_score(y_train, y_pred_proba_train[:, 1]))
+            # For multiclass classification
+            else:
+                results['roc_auc_macro'] = float(roc_auc_score(y_test, y_pred_proba, multi_class='ovr', average='macro'))
+                results['roc_auc_weighted'] = float(roc_auc_score(y_test, y_pred_proba, multi_class='ovr', average='weighted'))
+                results['roc_auc_macro_train'] = float(roc_auc_score(y_train, y_pred_proba_train, multi_class='ovr', average='macro'))
+                results['roc_auc_weighted_train'] = float(roc_auc_score(y_train, y_pred_proba_train, multi_class='ovr', average='weighted'))
+            
+            # Log loss (works for both binary and multiclass)
+            results['log_loss'] = float(log_loss(y_test, y_pred_proba))
+            results['log_loss_train'] = float(log_loss(y_train, y_pred_proba_train))
+                
+        except Exception as e:
+            print(f"    Warning: Could not calculate AUC/log_loss metrics: {str(e)}")
         
         # Add feature importance if available
         if hasattr(model.model, 'feature_importances_'):

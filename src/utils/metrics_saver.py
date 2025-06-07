@@ -127,9 +127,14 @@ class MetricsSaver:
                             
                             # Add common metrics (handle missing values gracefully)
                             metric_keys = [
-                                'accuracy', 'f1_weighted', 'f1_macro',
-                                'precision_weighted', 'precision_macro',
-                                'recall_weighted', 'recall_macro',
+                                'accuracy','accuracy_train', 'f1_weighted', 
+                                'f1_weighted_train', 'f1_macro', 'f1_macro_train',
+                                'precision_weighted', 'precision_weighted_train',
+                                'precision_macro', 'precision_macro_train',
+                                'recall_weighted', 'recall_weighted_train',
+                                'recall_macro', 'recall_macro_train',
+                                'roc_auc', 'roc_auc_train',
+                                'log_loss', 'log_loss_train',
                                 'n_samples_test', 'n_samples_train',
                                 'n_features', 'n_classes'
                             ]
