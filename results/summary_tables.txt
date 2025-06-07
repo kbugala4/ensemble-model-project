@@ -1,0 +1,42 @@
+EXPERIMENT RESULTS SUMMARY TABLES BY DATASET
+============================================================
+
+Generated from:
+- Total records: 19
+- Datasets: ['credit_cards', 'flights', 'human_activity']
+- Models: ['bagging_10', 'bagging_100', 'bagging_50', 'custom_ensemble_v1', 'random_forest_10', 'random_forest_100', 'random_forest_50']
+
+Format: Train Score | Test Score
+N/A indicates metric not available for that split
+
+
+📋 CREDIT_CARDS Dataset Results (Train | Test)
+===========================================
+  Experiment Name        Accuracy     F1 Weighted        F1 Macro Precision Weighted Recall Weighted       AUC
+       bagging_10 0.9999 | 0.9995 0.9999 | 0.9995 0.9878 | 0.9139    0.9999 | 0.9995 0.9999 | 0.9995 N/A | N/A
+      bagging_100 1.0000 | 0.9996 1.0000 | 0.9996 1.0000 | 0.9330    1.0000 | 0.9996 1.0000 | 0.9996 N/A | N/A
+       bagging_50 1.0000 | 0.9996 1.0000 | 0.9996 0.9976 | 0.9296    1.0000 | 0.9996 1.0000 | 0.9996 N/A | N/A
+ random_forest_10 0.9999 | 0.9996 0.9999 | 0.9996 0.9887 | 0.9251    0.9999 | 0.9996 0.9999 | 0.9996 N/A | N/A
+random_forest_100 1.0000 | 0.9996 1.0000 | 0.9996 1.0000 | 0.9251    1.0000 | 0.9996 1.0000 | 0.9996 N/A | N/A
+ random_forest_50 1.0000 | 0.9996 1.0000 | 0.9996 0.9968 | 0.9296    1.0000 | 0.9996 1.0000 | 0.9996 N/A | N/A
+
+📋 FLIGHTS Dataset Results (Train | Test)
+======================================
+   Experiment Name        Accuracy     F1 Weighted        F1 Macro Precision Weighted Recall Weighted       AUC
+        bagging_10 0.9966 | 0.9207 0.9966 | 0.9203 0.9965 | 0.9187    0.9966 | 0.9223 0.9966 | 0.9207 N/A | N/A
+       bagging_100 1.0000 | 0.9201 1.0000 | 0.9197 1.0000 | 0.9181    1.0000 | 0.9215 1.0000 | 0.9201 N/A | N/A
+        bagging_50 0.9999 | 0.9197 0.9999 | 0.9193 0.9999 | 0.9177    0.9999 | 0.9209 0.9999 | 0.9197 N/A | N/A
+custom_ensemble_v1    N/A | 0.9450    N/A | 0.9448    N/A | 0.9401       N/A | 0.9455    N/A | 0.9450 N/A | N/A
+  random_forest_10 0.9971 | 0.9403 0.9971 | 0.9399 0.9970 | 0.9388    0.9971 | 0.9421 0.9971 | 0.9403 N/A | N/A
+ random_forest_100 1.0000 | 0.9502 1.0000 | 0.9500 1.0000 | 0.9490    1.0000 | 0.9515 1.0000 | 0.9502 N/A | N/A
+  random_forest_50 0.9999 | 0.9490 0.9999 | 0.9487 0.9999 | 0.9477    0.9999 | 0.9503 0.9999 | 0.9490 N/A | N/A
+
+📋 HUMAN_ACTIVITY Dataset Results (Train | Test)
+=============================================
+  Experiment Name        Accuracy     F1 Weighted        F1 Macro Precision Weighted Recall Weighted       AUC
+       bagging_10 0.9984 | 0.8918 0.9984 | 0.8911 0.9984 | 0.8893    0.9984 | 0.8925 0.9984 | 0.8918 N/A | N/A
+      bagging_100 1.0000 | 0.8985 1.0000 | 0.8981 1.0000 | 0.8970    1.0000 | 0.9000 1.0000 | 0.8985 N/A | N/A
+       bagging_50 0.9999 | 0.8962 0.9999 | 0.8957 0.9999 | 0.8943    0.9999 | 0.8976 0.9999 | 0.8962 N/A | N/A
+ random_forest_10 0.9995 | 0.9023 0.9995 | 0.9020 0.9994 | 0.8998    0.9995 | 0.9041 0.9995 | 0.9023 N/A | N/A
+random_forest_100 1.0000 | 0.9270 1.0000 | 0.9269 1.0000 | 0.9253    1.0000 | 0.9284 1.0000 | 0.9270 N/A | N/A
+ random_forest_50 1.0000 | 0.9250 1.0000 | 0.9249 1.0000 | 0.9233    1.0000 | 0.9266 1.0000 | 0.9250 N/A | N/A

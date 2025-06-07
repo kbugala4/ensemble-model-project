@@ -12,7 +12,7 @@ class DatasetLoader:
     (preprocessing is done in Jupyter notebooks).
     """
     
-    def __init__(self, data_root: str = "../data/processed"):
+    def __init__(self, data_root: str = "data/processed"):
         self.data_root = data_root
         self.dataset_configs = {
             'flights': {
