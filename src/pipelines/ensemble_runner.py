@@ -56,7 +56,7 @@ class EnsembleRunner:
     def run_dataset_experiment(self, conf: dict, n_runs: int = 1, seed: int = 42) -> Dict:
         dataset_name = conf['dataset_conf']['dataset_shortname']
         for use_default in [False, True]:
-            for _ in range(n_runs):
+            for i in range(n_runs):
                 seed = seed + 1
                 train_logs, test_logs = self.build_ensemble(conf, dataset_name, use_default=use_default, seed=seed)
                 averages_train_logs = EnsembleRunner.average_model_metrics(train_logs)
@@ -66,7 +66,7 @@ class EnsembleRunner:
                 for k, v in averages_train_logs['train'].items():
                     full_report[f'{k}_train'] = v
 
-                name = f'{conf['model_name']}'                
+                name = f"{conf['model_name']}_run{i}"                
                 if use_default:
                     name = name + "_default"
                 else:
@@ -95,10 +95,6 @@ class EnsembleRunner:
 
         self.models.clear()
         logs = {}
-        print("**********")
-        print(dataset_name)
-        print("**********")
-        
         _, X_test, _, y_test, _   = self.data_loader.load_dataset(dataset_name)
         
         if seed is not None:
