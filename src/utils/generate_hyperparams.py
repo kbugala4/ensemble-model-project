@@ -26,7 +26,7 @@ class HyperparamsGenerator:
             self.randomize_f = randomize_f
         self.use_default = use_default
 
-    def generate_hyperparams(self, model_conf: dict, seed: int = None) -> dict:
+    def generate_hyperparams(self, model_conf: dict, use_default: bool = False, seed: int = None) -> dict:
         """
         Generates a dictionary of randomized hyperparameters according to the specified configuration.
 

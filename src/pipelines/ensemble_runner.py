@@ -53,47 +53,52 @@ class EnsembleRunner:
         self.models: List[BaseModel] = []
         self.metrics_saver = metrics_saver
 
-    def run_dataset_experiment(self, conf: dict, seed: int = 42) -> Dict:
-        # print(self.data_loader.list_available_datasets())
-        dataset_name = conf['dataset_conf']['dataset_name']
-        train_logs, test_logs = self.build_ensemble(conf, dataset_name, seed)
+    def run_dataset_experiment(self, conf: dict, n_runs: int = 1, seed: int = 42) -> Dict:
+        dataset_name = conf['dataset_conf']['dataset_shortname']
+        for use_default in [False, True]:
+            for _ in range(n_runs):
+                seed = seed + 1
+                train_logs, test_logs = self.build_ensemble(conf, dataset_name, use_default=use_default, seed=seed)
+                averages_train_logs = EnsembleRunner.average_model_metrics(train_logs)
 
-        averages_train_logs = EnsembleRunner.average_model_metrics(train_logs)
-        
-        full_report = test_logs
-        # Add training info
-        for k, v in train_logs.items():
-            averages_train_logs[f'{k}_train'] = v
-        
-        # # Add dataset info
-        # full_report['n_samples_test'] = len(X_train)
-        # full_report['n_classes'] = len(np.unique(y_train)),
+                full_report = test_logs
+                # Add training info
+                for k, v in averages_train_logs['train'].items():
+                    full_report[f'{k}_train'] = v
 
-        # Add results to metrics saver
-        self.metrics_saver.add_experiment_results(
-            dataset_name,
-            conf['model_name'],
-            full_report
-            )
+                name = f'{conf['model_name']}'                
+                if use_default:
+                    name = name + "_default"
+                else:
+                    name = name + "_randomize"
+
+                self.metrics_saver.add_experiment_results(
+                    dataset_name,
+                    name,
+                    full_report
+                    )
+            
+        # # Print summary and save results
+        # self.metrics_saver.print_summary()
+        # json_path, csv_path = self.metrics_saver.save_results()
         
-        # Print summary and save results
-        self.metrics_saver.print_summary()
-        json_path, csv_path = self.metrics_saver.save_results()
-        
-        print(f"\n✅ Full custom experiments completed!")
-        print(f"📄 Detailed results: {json_path}")
-        print(f"📊 Summary: {csv_path}")
+        # print(f"\n✅ Full custom experiments completed!")
+        # print(f"📄 Detailed results: {json_path}")
+        # print(f"📊 Summary: {csv_path}")
         
         return self.metrics_saver.get_results()
 
-    def build_ensemble(self, conf: dict, dataset_name: str, seed : int = 42) -> Dict:
+    def build_ensemble(self, conf: dict, dataset_name: str, use_default: bool = False, seed : int = 42) -> Dict:
         """
         Builds the ensemble by creating model instances with sampled data and hyperparameters.
         """
 
         self.models.clear()
         logs = {}
-      
+        print("**********")
+        print(dataset_name)
+        print("**********")
+        
         _, X_test, _, y_test, _   = self.data_loader.load_dataset(dataset_name)
         
         if seed is not None:
@@ -113,7 +118,7 @@ class EnsembleRunner:
             
             model_conf = conf['model_conf']
 
-            hyperparams = self.hyperparam_generator.generate_hyperparams(model_conf, seed=None)
+            hyperparams = self.hyperparam_generator.generate_hyperparams(model_conf, use_default=use_default, seed=None)
             model = model_conf['model_type'](hyperparams)
             model.training_features = features
             model_logs['hyperparams'] = hyperparams
