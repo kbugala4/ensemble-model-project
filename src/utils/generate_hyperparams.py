@@ -10,7 +10,7 @@ class HyperparamsGenerator:
     floats, or categorical options.
     """
 
-    def __init__(self, randomize_f: callable = None) -> None:
+    def __init__(self, randomize_f: callable = None, use_default: bool = False) -> None:
         """
         Initializes the HyperparamsGenerator.
 
@@ -18,11 +18,13 @@ class HyperparamsGenerator:
             randomize_f (callable, optional): A function that accepts a parameter description
                 dictionary (containing metadata such as 'type', 'min', 'max', or 'options')
                 and returns a randomized value. If None, a default uniform randomizer is used.
+            use_default (bool): Flag if the values set for hyperparameters should be filled with the default value
         """
         if randomize_f is None:
             self.randomize_f = self.randomize_uniform
         else:
             self.randomize_f = randomize_f
+        self.use_default = use_default
 
     def generate_hyperparams(self, model_conf: dict, seed: int = None) -> dict:
         """
@@ -50,9 +52,29 @@ class HyperparamsGenerator:
         for param_name, param_desc in model_conf.items():
             if param_name in ['model_name', 'model_id', 'model_type']:
                 continue
-            model_hyperparams[param_name] = self.randomize_f(param_desc)
+            if self.use_default:
+                model_hyperparams[param_name] = param_desc['default']
+            else:
+                model_hyperparams[param_name] = self.randomize_f(param_desc)
 
         return model_hyperparams
+
+    # @staticmethod
+    # def get_default(param_dict: dict)  -> int | float | str:
+    #     return param_dict['default']
+    #     param_type = param_dict['type']
+    #     if param_type in ['float', 'int']:
+    #         min_v = int(param_dict['min'])
+    #         max_v = int(param_dict['max'])
+
+    #         if param_type == 'int':
+    #             return random.randint(min_v, max_v)
+    #         elif param_type == 'float':
+    #             return random.uniform(min_v, max_v)
+    #     elif param_type == 'list':
+    #         return random.choice(param_dict['options'])
+    #     else:
+    #         raise ValueError(f"Unsupported parameter type: {param_type}")
 
     @staticmethod
     def randomize_uniform(param_dict: dict) -> int | float | str:

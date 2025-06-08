@@ -48,7 +48,7 @@ class DataSubsetGenerator:
             np.random.seed(seed)
         
         # Extract configuration parameters
-        dataset_name = dataset_conf.get('dataset_name')
+        dataset_name = dataset_conf.get('dataset_path')
         shrunk_size = dataset_conf.get('shrunk_size')
         n_attributes_max = dataset_conf.get('n_attributes_max')
         n_attributes_min = dataset_conf.get('n_attributes_min')

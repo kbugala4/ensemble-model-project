@@ -18,6 +18,7 @@ from utils.dataloader import DatasetLoader
 import sys
 from collections import defaultdict
 from utils.metrics_saver import MetricsSaver
+from utils.common import COMMON_DATASET_CONFIGS
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
@@ -53,16 +54,16 @@ class EnsembleRunner:
         self.metrics_saver = metrics_saver
 
     def run_dataset_experiment(self, conf: dict, seed: int = 42) -> Dict:
-        # for dataset_name in self.data_loader.list_available_datasets()[0]:
-        dataset_name = self.data_loader.list_available_datasets()[0]
+        # print(self.data_loader.list_available_datasets())
+        dataset_name = conf['dataset_conf']['dataset_name']
         train_logs, test_logs = self.build_ensemble(conf, dataset_name, seed)
 
         averages_train_logs = EnsembleRunner.average_model_metrics(train_logs)
+        
         full_report = test_logs
- 
         # Add training info
         for k, v in train_logs.items():
-            full_report[f'{k}_train'] = v
+            averages_train_logs[f'{k}_train'] = v
         
         # # Add dataset info
         # full_report['n_samples_test'] = len(X_train)

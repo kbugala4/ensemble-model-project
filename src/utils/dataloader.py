@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 from typing import Optional, Tuple, Dict, List
 import os
-
 from utils.generate_data_subset import DataSubsetGenerator
+import sys
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 
 class DatasetLoader:
     """
@@ -12,7 +14,7 @@ class DatasetLoader:
     (preprocessing is done in Jupyter notebooks).
     """
     
-    def __init__(self, data_root: str = "data/processed"):
+    def __init__(self, data_root: str = "../data/processed"):
         self.data_root = data_root
         self.dataset_configs = {
             'flights': {
