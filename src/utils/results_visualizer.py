@@ -348,6 +348,10 @@ class EnsembleResultsVisualizer:
             ax.set_title(f'{metric_title} - {custom_experiment} vs Baseline')
             ax.grid(True, alpha=0.3, axis='x')
             ax.set_axisbelow(True)
+            # Set fixed X-axis range from 0 to 1
+            ax.set_xlim(0.7, 1)
+            ax.set_xticks([0.7, 0.8, 0.9, 1])
+            ax.set_xticklabels(['0.7', '0.8', '0.9', '1'])
         
         # Add single legend for the entire figure
         handles, labels = axes[0].get_legend_handles_labels()
