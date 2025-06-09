@@ -80,8 +80,8 @@ def create_dataset_table(df, dataset_name, metrics):
         print(f"⚠️  Warning: No data found for dataset '{dataset_name}'")
         return None
     
-    # Group by model to handle multiple runs
-    grouped = dataset_df.groupby('model').agg(['mean', 'std', 'count']).reset_index()
+    # # Group by model to handle multiple runs
+    # grouped = dataset_df.groupby('model').agg(['mean', 'std', 'count']).reset_index()
     
     # Create result table
     result_rows = []
@@ -168,7 +168,6 @@ def generate_results():
     for dataset in available_datasets:
         print(f"📊 Creating table for {dataset} dataset...")
         table = create_dataset_table(df, dataset, metrics)
-        
         if table is not None:
             print(f"\n🔍 {dataset.upper()} Dataset Results:")
             print("-" * 50)

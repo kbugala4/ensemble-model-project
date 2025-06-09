@@ -71,7 +71,7 @@ class EnsembleRunner:
                 for k, v in averages_train_logs['train'].items():
                     full_report[f'{k}_train'] = v
 
-                name = f"{conf['model_name']}_run{i}"                
+                name = f"{conf['model_name']}"                
                 if use_default:
                     name = name + "_default"
                 else:
