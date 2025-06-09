@@ -13,12 +13,17 @@ import pandas as pd
 import os
 import random
 from models.base_model import BaseModel
+from src.models.base_model import BaseModel
 from sklearn.model_selection import train_test_split
-from utils.dataloader import DatasetLoader
+# from utils.dataloader import DatasetLoader
+from src.utils.dataloader import DatasetLoader
 import sys
 from collections import defaultdict
-from utils.metrics_saver import MetricsSaver
-from utils.common import COMMON_DATASET_CONFIGS
+from src.utils.metrics_saver import MetricsSaver
+from src.utils.common import COMMON_DATASET_CONFIGS
+
+# from utils.metrics_saver import MetricsSaver
+# from utils.common import COMMON_DATASET_CONFIGS
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
