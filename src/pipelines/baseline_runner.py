@@ -32,30 +32,38 @@ class BaselineExperimentRunner:
         # Define model configurations
         # TO BE EXTRACTED TO BASELINE CONFIG
         self.model_configs = {
+            'bagging_5': {
+                'n_estimators': 10,
+                'random_state': 42
+            },
             'bagging_10': {
                 'n_estimators': 10,
                 'random_state': 42
             },
-            'bagging_50': {
-                'n_estimators': 50, 
+            'bagging_20': {
+                'n_estimators': 20, 
                 'random_state': 42
             },
-            'bagging_100': {
-                'n_estimators': 100,
+            # 'bagging_100': {
+            #     'n_estimators': 100,
+            #     'random_state': 42
+            # },
+            'random_forest_5': {
+                'n_estimators': 10,
                 'random_state': 42
             },
             'random_forest_10': {
                 'n_estimators': 10,
                 'random_state': 42
             },
-            'random_forest_50': {
-                'n_estimators': 50,
+            'random_forest_20': {
+                'n_estimators': 20,
                 'random_state': 42
             },
-            'random_forest_100': {
-                'n_estimators': 100,
-                'random_state': 42
-            }
+            # 'random_forest_100': {
+            #     'n_estimators': 100,
+            #     'random_state': 42
+            # }
         }
     
     def run_full_baseline_experiments(self) -> Dict[str, Any]:

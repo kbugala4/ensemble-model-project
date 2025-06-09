@@ -60,7 +60,6 @@ class DataSubsetGenerator:
         
         # Load the dataset directly from the provided path
         df = self._load_dataset(dataset_name)
-        print(f"Dataset columns before shrinking: {df.columns.tolist()}")
         
         # Apply dataset shrinking if specified
         if shrunk_size is not None:
@@ -69,7 +68,6 @@ class DataSubsetGenerator:
                 shrunk_size = len(df)
             
             df = df.sample(n=shrunk_size, random_state=seed).reset_index(drop=True)
-            print(f"Dataset shrunk to: {df.shape}")
         
         
         # Get feature columns (all except target)
@@ -79,14 +77,12 @@ class DataSubsetGenerator:
             feature_columns = list(df.columns)
             target_column = None
         
-        print(f"Available feature columns: {len(feature_columns)}")
         
         # Select attributes using the specified selection strategy
         selected_attributes = self._select_attributes(
             df, feature_columns, n_attributes_min, n_attributes_max, select_type, target_column
         )
         
-        print(f"Selected {len(selected_attributes)} attributes: {selected_attributes}")
         
         # Create the subset DataFrame
         subset_columns = selected_attributes.copy()
@@ -95,7 +91,6 @@ class DataSubsetGenerator:
         
         df_subset = df[subset_columns].copy()
         
-        print(f"Final bootstrapped dataset shape: {df_subset.shape}")
         
         return df_subset, selected_attributes
 
@@ -118,7 +113,6 @@ class DataSubsetGenerator:
             sample_seed = base_seed + i
             df_subset, selected_attrs = self.load_bootstrapped_dataset(dataset_conf, seed=sample_seed)
             bootstrap_samples.append((df_subset, selected_attrs))
-            print(f"Created bootstrap sample {i+1}/{n_samples} for seed {sample_seed}")
         
         return bootstrap_samples
 
@@ -163,7 +157,6 @@ class DataSubsetGenerator:
         
         # Randomly select number of attributes to use
         n_attributes_to_select = random.randint(n_attributes_min, n_attributes_max)
-        print(f"Standard selection: Selected {n_attributes_to_select} attributes")
         
         # Randomly select the attributes
         selected_attributes = random.sample(feature_columns, n_attributes_to_select)
@@ -176,7 +169,6 @@ class DataSubsetGenerator:
         n_attributes_to_select = max(1, int(np.sqrt(max_available)))
         n_attributes_to_select = min(n_attributes_to_select, max_available)
         
-        print(f"Sqrt selection: Selected {n_attributes_to_select} attributes (sqrt of {max_available})")
         
         # Randomly select the attributes
         selected_attributes = random.sample(feature_columns, n_attributes_to_select)
@@ -214,9 +206,7 @@ class DataSubsetGenerator:
             # path = f"data/processed/{dataset_path_name}/train.csv"
             path = f"../{dataset_name}"
 
-            print(f"Loading dataset from: {path}")
             df = pd.read_csv(path)
-            print(f"Original dataset shape: {df.shape}")
             return df
             
         except FileNotFoundError:

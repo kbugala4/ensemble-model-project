@@ -132,11 +132,11 @@ class MetricsSaver:
                                 'precision_weighted', 'precision_weighted_train',
                                 'precision_macro', 'precision_macro_train',
                                 'recall_weighted', 'recall_weighted_train',
-                                'recall_macro', 'recall_macro_train',
-                                'roc_auc', 'roc_auc_train',
-                                'log_loss', 'log_loss_train',
-                                'n_samples_test', 'n_samples_train',
-                                'n_features', 'n_classes'
+                                # 'recall_macro', 'recall_macro_train',
+                                # 'roc_auc', 'roc_auc_train',
+                                # 'log_loss', 'log_loss_train',
+                                # 'n_samples_test', 'n_samples_train',
+                                # 'n_features', 'n_classes'
                             ]
                             
                             for key in metric_keys:

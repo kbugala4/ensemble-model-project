@@ -37,8 +37,8 @@ class EnsembleResultsVisualizer:
             ('f1_weighted', 'F1 Weighted'),
             ('f1_macro', 'F1 Macro'),
             ('precision_weighted', 'Precision Weighted'),
-            ('recall_weighted', 'Recall Weighted'),
-            ('roc_auc', 'AUC')
+            ('recall_weighted', 'Recall Weighted')
+            # ('roc_auc', 'AUC')
         ]
         
     def load_data(self) -> pd.DataFrame:
