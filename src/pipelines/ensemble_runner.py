@@ -60,10 +60,13 @@ class EnsembleRunner:
 
     def run_dataset_experiment(self, conf: dict, n_runs: int = 1, seed: int = 42) -> Dict:
         dataset_name = conf['dataset_conf']['dataset_shortname']
-        for use_default in [False, True]:
+        for use_default in ['hyperparams_and_attr', 'no_hyperparams_have_attr', 'hyperparams_no_attr', 'no_hyperparams_no_attr']:
             for i in range(n_runs):
                 seed = seed + 1
-                train_logs, test_logs = self.build_ensemble(conf, dataset_name, use_default=use_default, seed=seed)
+                train_logs, test_logs = self.build_ensemble(conf, dataset_name,
+                                                            use_default_hyperparams=(use_default == 'no_hyperparams_have_attr' or use_default == 'no_hyperparams_no_attr'), 
+                                                            use_default_attr=(use_default == 'no_hyperparams_no_attr' or use_default == 'hyperparams_no_attr'), 
+                                                            seed=seed)
                 averages_train_logs = EnsembleRunner.average_model_metrics(train_logs)
 
                 full_report = test_logs
@@ -72,10 +75,14 @@ class EnsembleRunner:
                     full_report[f'{k}_train'] = v
 
                 name = f"{conf['model_name']}"                
-                if use_default:
-                    name = name + "_default"
-                else:
-                    name = name + "_randomize"
+                if use_default == 'hyperparams_and_attr':
+                    name = name + "_default_hyperparams_and_attr"
+                elif use_default == 'no_hyperparams_have_attr':
+                    name = name + "_randomize_hyperparams_and_attr"
+                elif use_default == 'hyperparams_no_attr':
+                    name = name + "_default_no_attr"
+                elif use_default == 'no_hyperparams_no_attr':
+                    name = name + "_randomize_no_attr"
 
                 self.metrics_saver.add_experiment_results(
                     dataset_name,
@@ -93,7 +100,7 @@ class EnsembleRunner:
         
         return self.metrics_saver.get_results()
 
-    def build_ensemble(self, conf: dict, dataset_name: str, use_default: bool = False, seed : int = 42) -> Dict:
+    def build_ensemble(self, conf: dict, dataset_name: str, use_default_hyperparams: bool = False, use_default_attr: bool = False, seed : int = 42) -> Dict:
         """
         Builds the ensemble by creating model instances with sampled data and hyperparameters.
         """
@@ -110,7 +117,7 @@ class EnsembleRunner:
             model_logs = {}
 
             dataset_conf = conf['dataset_conf']
-            sample, features = self.data_sampler.load_bootstrapped_dataset(dataset_conf=dataset_conf, seed=None)
+            sample, features = self.data_sampler.load_bootstrapped_dataset(dataset_conf=dataset_conf, seed=None, use_default_attr=use_default_attr)
             target_column = sample.columns[-1]
             model_logs['selected_features'] = features
 
@@ -119,7 +126,7 @@ class EnsembleRunner:
             
             model_conf = conf['model_conf']
 
-            hyperparams = self.hyperparam_generator.generate_hyperparams(model_conf, use_default=use_default, seed=None)
+            hyperparams = self.hyperparam_generator.generate_hyperparams(model_conf, use_default=use_default_hyperparams, seed=None)
             model = model_conf['model_type'](hyperparams)
             model.training_features = features
             model_logs['hyperparams'] = hyperparams

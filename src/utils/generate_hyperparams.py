@@ -54,7 +54,7 @@ class HyperparamsGenerator:
         for param_name, param_desc in model_conf.items():
             if param_name in ['model_name', 'model_id', 'model_type']:
                 continue
-            if self.use_default:
+            if use_default:
                 model_hyperparams[param_name] = param_desc['default']
             else:
                 model_hyperparams[param_name] = self.randomize_f(param_desc)

@@ -34,12 +34,15 @@ class DatasetLoader:
             }
         }
     
-    def load_bootstrapped_dataset(self, dataset_conf: Dict, seed: Optional[int] = None) -> Tuple[pd.DataFrame, List[str]]:
+    def load_bootstrapped_dataset(self, dataset_conf: Dict, seed: Optional[int] = None, use_default_attr: bool = False) -> Tuple[pd.DataFrame, List[str]]:
         """
         Load a pre-processed dataset with a subset of the data.
         """
-        generator = DataSubsetGenerator()
-        return generator.load_bootstrapped_dataset(dataset_conf, seed)
+        if use_default_attr:
+            return self.load_dataset(dataset_conf['dataset_name'])
+        else:
+            generator = DataSubsetGenerator()
+            return generator.load_bootstrapped_dataset(dataset_conf, seed)
         
     
     def load_dataset(self, dataset_name: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, List[str]]:
