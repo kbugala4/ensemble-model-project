@@ -82,11 +82,12 @@ def create_dataset_table(df, dataset_name, metrics):
     
     # # Group by model to handle multiple runs
     # grouped = dataset_df.groupby('model').agg(['mean', 'std', 'count']).reset_index()
-    
+    print('Start')
     # Create result table
     result_rows = []
     
     for model in dataset_df['model'].unique():
+        print(f'model: {model}')
         model_data = dataset_df[dataset_df['model'] == model]
         row = {'Experiment Name': model}
         
