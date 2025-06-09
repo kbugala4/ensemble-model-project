@@ -1,7 +1,9 @@
 import joblib
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
-from models.base_model import BaseModel
+
+from src.models.base_model import BaseModel
+# from models.base_model import BaseModel
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
