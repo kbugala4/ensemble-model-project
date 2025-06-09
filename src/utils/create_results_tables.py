@@ -79,9 +79,6 @@ def create_dataset_table(df, dataset_name, metrics):
     if dataset_df.empty:
         print(f"⚠️  Warning: No data found for dataset '{dataset_name}'")
         return None
-    
-    # # Group by model to handle multiple runs
-    # grouped = dataset_df.groupby('model').agg(['mean', 'std', 'count']).reset_index()
     print('Start')
     # Create result table
     result_rows = []
