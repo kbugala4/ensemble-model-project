@@ -117,7 +117,11 @@ class EnsembleRunner:
             model_logs = {}
 
             dataset_conf = conf['dataset_conf']
-            sample, features = self.data_sampler.load_bootstrapped_dataset(dataset_conf=dataset_conf, seed=None, use_default_attr=use_default_attr)
+            if use_default_attr:
+                sample, features = self.data_loader.load_bootstrapped_dataset(dataset_conf=dataset_conf, seed=None, use_default_attr=use_default_attr)
+            else:
+                sample, features = self.data_sampler.load_bootstrapped_dataset(dataset_conf=dataset_conf, seed=None)
+
             target_column = sample.columns[-1]
             model_logs['selected_features'] = features
 
