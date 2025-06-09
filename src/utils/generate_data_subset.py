@@ -5,6 +5,8 @@ from typing import Dict, Optional, Tuple, List
 import random
 import warnings
 
+import sys
+sys.path.append("..") # go to parent dir
 from utils.common import COMMON_DATASET_CONFIGS
 
 class DataSubsetGenerator:
