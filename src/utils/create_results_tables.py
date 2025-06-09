@@ -154,7 +154,7 @@ def generate_results():
         ('f1_macro', 'F1 Macro'),
         ('precision_weighted', 'Precision Weighted'),
         ('recall_weighted', 'Recall Weighted'),
-        ('roc_auc', 'AUC')
+        # ('roc_auc', 'AUC')
     ]
     
     # Get available datasets from the data
